@@ -1,29 +1,39 @@
-- name: bootstrap mysql
+---
+- name: Bootstrap MySQL for Flyway
   hosts: localhost
   gather_facts: false
+
   tasks:
-    - name: docker compose up
+    - name: Docker Compose Up (MySQL + Adminer)
       community.docker.docker_compose_v2:
         project_src: .
         files:
-        - mysql-adminer.yml
+          - mysql-adminer.yml
         state: present
-    - name: Install mysql-client
+
+    - name: Install MySQL client
+      become: true
       ansible.builtin.package:
         name: mysql-client
         update_cache: yes
         state: present
-      become: yes
-    - name: Install mysql python connectors
+
+    - name: Install Python MySQL connectors
       ansible.builtin.pip:
         name:
           - pymysql
           - mysql-connector-python
-    - name: install nektos/act
-      ansible.builtin.shell: curl --proto '=https' --tlsv1.2 -sSf https://raw.githubusercontent.com/nektos/act/master/install.sh | sudo bash
+
+    - name: Install nektos/act (if not present)
+      ansible.builtin.shell: |
+        curl -s https://raw.githubusercontent.com/nektos/act/master/install.sh | bash
+        sudo mv ./bin/act /usr/local/bin/act
       args:
-        creates: bin/act
+        creates: /usr/local/bin/act
+    - name: Set act default runner image to medium
+      ansible.builtin.shell: |
+        mkdir -p ~/.config/act
+        echo '-P ubuntu-latest=ghcr.io/catthehacker/ubuntu:act-22.04' > ~/.config/act/actrc
 
-
-
-
+    - name: Run GitHub Actions workflow locally using ACT
+      ansible.builtin.shell: act push

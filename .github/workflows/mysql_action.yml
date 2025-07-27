@@ -1,29 +1,51 @@
-name: Mysql actions demo
-run-name: ${{ github.actor }} is testing out Mysql GitHub Actions 🚀
+name: Flyway Migration CI
+
 on: [push]
+
 jobs:
-  setup_mysql_database:
+  migrate:
     runs-on: ubuntu-latest
+
+    services:
+      mysql:
+        image: mysql:8
+        env:
+          MYSQL_ROOT_PASSWORD: Secret5555
+          MYSQL_DATABASE: subscriptions
+          MYSQL_USER: subuser
+          MYSQL_PASSWORD: subpass
+        ports:
+          - 3308:3306
+        options: >-
+          --health-cmd="mysqladmin ping"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=10
+
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v2
+      - name: Checkout repo
+        uses: actions/checkout@v3
 
-      - name: Install MySQL client
-        run: sudo apt-get update && sudo apt-get install -y mysql-client
+      - name: Install Flyway
+        run: |
+          curl -L https://repo1.maven.org/maven2/org/flywaydb/flyway-commandline/9.16.0/flyway-commandline-9.16.0-linux-x64.tar.gz | tar xz
+          sudo ln -s $PWD/flyway-*/flyway /usr/local/bin/flyway
 
-      - name: Deploy to Database
+      - name: Run Initial Migration
+        run: flyway -configFiles=flyway-init.conf migrate
+
+      - name: Run Incremental Migration
+        run: flyway -configFiles=flyway-update.conf migrate
+
+      - name: Install Python requirements for tests
+        run: |
+          sudo apt-get update && sudo apt-get install -y python3-pip default-libmysqlclient-dev
+          pip3 install mysql-connector-python
+
+      - name: Run Unit Tests
         env:
-          DB_HOST: ${{ secrets.DB_HOST || '127.0.0.1' }} 
-          DB_USER: ${{ secrets.DB_ADMIN_USER || 'root' }}
-          DB_PASSWORD: ${{ secrets.DB_PASSWORD  || 'Secret5555'}}
-          DB_NAME: ${{ secrets.DB_NAME || 'mysql' }}
-        run: mysql -h $DB_HOST -u $DB_USER -p$DB_PASSWORD $DB_NAME < schema_changes.sql
-      - name: pull flyway
-        run: docker pull redgate/flyway
-      - name: Run migrations
-        env:
-          DB_HOST: ${{ secrets.DB_HOST || '172.17.0.1' }} 
-          DB_USER: ${{ secrets.DB_ADMIN_USER || 'root' }}
-          DB_PASSWORD: ${{ secrets.DB_PASSWORD  || 'Secret5555'}}
-          REPO_NAME: ${{ github.event.repository.name || 'PROG8850flyway'}}
-        run: docker run --rm -v "/workspaces/$REPO_NAME/migrations:/flyway/sql" redgate/flyway -user=$DB_USER -password=$DB_PASSWORD -url=jdbc:mysql://$DB_HOST:3306/flyway_test migrate
+          ACT: "1"
+        run: python3 tests/test_db.py
+
+      - name: Deployment Complete
+        run: echo "✅ Flyway Migration and Tests Done"
