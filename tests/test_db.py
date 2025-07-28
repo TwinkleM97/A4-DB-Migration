@@ -3,6 +3,16 @@ import mysql.connector
 import unittest
 
 # Use ACT port if running locally
+host = os.getenv("DB_HOST", "127.0.0.1")  # fallback to 127.0.0.1
+port = int(os.getenv("DB_PORT", 3308))
+
+DB_CONFIG = {
+    "host": host,
+    "port": port,
+    "user": "subuser",
+    "password": "subpass",
+    "database": "subscriptions"
+}
 if os.getenv('ACT'):
     DB_CONFIG = {
         "host": "127.0.0.1",
