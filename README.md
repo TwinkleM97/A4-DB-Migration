@@ -59,3 +59,6 @@ docker run --rm -v "/workspaces/<repo name>/migrations:/flyway/sql" redgate/flyw
 ```
 
 This is a reproducible mysql setup, with a flyway migration. It is also the start of an example of using flyway and github actions together. Flyway (jdbc) needs the database to exist. The github action creates it if it doesn't exist and flyway takes over from there.
+
+
+./flyway/flyway -configFiles=flyway-init.conf info

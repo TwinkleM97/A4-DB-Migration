@@ -10,3 +10,6 @@
         files:
           - mysql-adminer.yml
         state: absent
+    - name: Remove all containers and volumes
+      command: docker system prune -af --volumes
+      

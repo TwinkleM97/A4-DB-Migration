@@ -6,7 +6,7 @@ import unittest
 if os.getenv('ACT'):
     DB_CONFIG = {
         "host": "127.0.0.1",
-        "port": 3308,
+        "port": 3307,
         "user": "subuser",
         "password": "subpass",
         "database": "subscriptions"
@@ -14,7 +14,7 @@ if os.getenv('ACT'):
 else:
     DB_CONFIG = {
         "host": "mysql",
-        "port": 3306,
+        "port": 3307,
         "user": "subuser",
         "password": "subpass",
         "database": "subscriptions"
