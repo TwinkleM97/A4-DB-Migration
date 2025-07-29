@@ -13,7 +13,25 @@ DB_CONFIG = {
     "password": "subpass",
     "database": "subscriptions"
 }
-if os.getenv('ACT'):
+# if os.getenv('ACT'):
+#     DB_CONFIG = {
+#         "host": "127.0.0.1",
+#         "port": 3308,
+#         "user": "subuser",
+#         "password": "subpass",
+#         "database": "subscriptions"
+#     }
+# else:
+#     DB_CONFIG = {
+#         "host": "mysql",
+#         "port": 3308,
+#         "user": "subuser",
+#         "password": "subpass",
+#         "database": "subscriptions"
+#     }
+# Detect running environment
+if os.getenv("ACT"):
+    # Running in ACT GitHub Actions
     DB_CONFIG = {
         "host": "127.0.0.1",
         "port": 3308,
@@ -21,10 +39,20 @@ if os.getenv('ACT'):
         "password": "subpass",
         "database": "subscriptions"
     }
-else:
+elif os.getenv("GITHUB_ACTIONS"):
+    # Running in GitHub Actions (services use 'mysql' as host)
     DB_CONFIG = {
         "host": "mysql",
-        "port": 3308,
+        "port": 3306,
+        "user": "subuser",
+        "password": "subpass",
+        "database": "subscriptions"
+    }
+else:
+    # Running locally (Ansible/Docker Compose exposes MySQL on 127.0.0.1:3307)
+    DB_CONFIG = {
+        "host": "127.0.0.1",
+        "port": 3307,
         "user": "subuser",
         "password": "subpass",
         "database": "subscriptions"
