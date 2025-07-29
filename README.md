@@ -120,7 +120,7 @@ To manually connect to the MySQL container (running on port 3307), use:
 ```bash
 mysql -u root -h 127.0.0.1 -P 3307 -p
 ```
--password: Secret5555
+- password: Secret5555
 
 ### 6. Tear Down
 
